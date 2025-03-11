@@ -113,7 +113,7 @@ def fetch_id_info(idList: list):
         print("Something went wrong, please try later")
 
 
-def e_search(searchTerm='cancer', file='pubmed-articles.csv'):
+def e_search(file, searchTerm='cancer'):
     base_url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi'
     params = {
         'db': 'pubmed',
@@ -128,13 +128,16 @@ def e_search(searchTerm='cancer', file='pubmed-articles.csv'):
         parsed = parsed['esearchresult'] if 'esearchresult' in parsed else {}
         idlist = parsed['idlist'] if 'idlist' in parsed else []
         data = fetch_id_info(idlist)
-        with open(file, 'w', newline='') as csvfile:
-            fieldnames = ['pubMedId', 'articleTitle',
-                          'publicationType', 'authors', 'affiliations', 'emails']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(data)
-        print('saved results to ', file)
+        if file:
+            with open(file, 'w', newline='') as csvfile:
+                fieldnames = ['pubMedId', 'articleTitle',
+                              'publicationType', 'authors', 'affiliations', 'emails']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(data)
+                print('saved results to ', file)
+        else:
+            print(data)
     else:
         print("Something went wrong, please try later")
 
@@ -144,15 +147,16 @@ def e_search(searchTerm='cancer', file='pubmed-articles.csv'):
 @click.option("--debug", "-d", is_flag=True, help="run in debug mode")
 @click.option("--file", "-f", default=None, type=str, required=False, help="output file name eg:articles.csv")
 def cli(input_text: str, debug: bool, file: str) -> None:
+    print('file', file)
     if file and (not file.endswith('.csv')):
         print('Please give a vailid file name ending with .csv')
         return
 
     if debug:
-        e_search(input_text, file)
+        e_search(file, input_text)
     else:
         try:
-            e_search(input_text, file)
+            e_search(file, input_text)
         except:
             print('something went wrong!, please use -d flag to debug')
 
